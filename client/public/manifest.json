@@ -1,0 +1,19 @@
+{
+  "name": "Industrial Biogas Plant MIS",
+  "short_name": "Biogas MIS",
+  "description": "Industrial Biogas Plant Management Information System",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f8fafc",
+  "theme_color": "#2879b6",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

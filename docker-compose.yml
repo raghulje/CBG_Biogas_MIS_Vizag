@@ -1,0 +1,20 @@
+services:
+  srel-uat:
+    image: node:18
+    container_name: srel-uat
+    working_dir: /app/server
+    volumes:
+      - ./server:/app/server
+      - ./client:/app/client
+    command: npm start
+    env_file:
+      - ./server/.env
+    expose:
+      - "3015"
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
+

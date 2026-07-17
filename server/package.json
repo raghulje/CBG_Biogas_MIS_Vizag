@@ -1,0 +1,42 @@
+{
+  "name": "biogas-mis-server",
+  "version": "1.0.0",
+  "description": "Enterprise Node.js Backend for BioGas MIS",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "seed": "node seed.js",
+    "init-db": "node create_db.js && node seed.js",
+    "migrate": "node services/migrationRunner.js",
+    "migrate:up": "node -e \"require('./services/migrationRunner').runPendingMigrations().catch(e=>{console.error(e);process.exit(1)})\"",
+    "migrate:down": "node -e \"require('./services/migrationRunner').revertLast().catch(e=>{console.error(e);process.exit(1)})\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.2",
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "date-fns": "^3.6.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.9.7",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.9.13",
+    "pm2": "^6.0.14",
+    "sequelize": "^6.37.3",
+    "umzug": "^3.8.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

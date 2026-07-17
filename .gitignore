@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+server/.env
+client/.env
+server/config/config.json
+
+# Build outputs
+dist/
+client/dist/
+client/out/
+build/
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# IDE and OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Optional: keep Excel samples if you want; uncomment next line to ignore them
+# *.xlsx
