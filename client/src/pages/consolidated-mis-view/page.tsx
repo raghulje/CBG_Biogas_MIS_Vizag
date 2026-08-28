@@ -17,13 +17,13 @@ const mockMISData = {
   plantName: '4 TPD - SREL PLANT',
   feedingData: {
     feedstocks: [
-      { name: 'Press Mud (tpd)', d01: 2.5, d02: 2.3, d03: 2.4, total: 7.2 },
-      { name: 'Cow Dung (tpd)', d01: 1.2, d02: 1.1, d03: 1.3, total: 3.6 },
-      { name: 'Other feedstock (tpd)', d01: 0.3, d02: 0.2, d03: 0.3, total: 0.8 },
-      { name: 'Decanter permeate (m3)', d01: 4.5, d02: 4.2, d03: 4.6, total: 13.3 },
-      { name: 'Water (m3)', d01: 2.1, d02: 2.0, d03: 2.2, total: 6.3 },
-      { name: 'Digester 03 slurry (m3)', d01: '-', d02: '-', d03: 1.5, total: 1.5 },
-      { name: 'Total Feed Input (m3)', d01: 10.6, d02: 9.8, d03: 12.3, total: 32.7 },
+      { name: 'Press Mud (tpd)', d01: 7.2, d02: 0, d03: 0, total: 7.2 },
+      { name: 'Cow Dung (tpd)', d01: 3.6, d02: 0, d03: 0, total: 3.6 },
+      { name: 'Other feedstock (tpd)', d01: 0.8, d02: 0, d03: 0, total: 0.8 },
+      { name: 'Decanter permeate (m3)', d01: 13.3, d02: 0, d03: 0, total: 13.3 },
+      { name: 'Water (m3)', d01: 6.3, d02: 0, d03: 0, total: 6.3 },
+      { name: 'Digester slurry (m3)', d01: 1.5, d02: 0, d03: 0, total: 1.5 },
+      { name: 'Total Feed Input (m3)', d01: 32.7, d02: 0, d03: 0, total: 32.7 },
     ],
   },
   rawMaterialQuality: {
@@ -32,10 +32,8 @@ const mockMISData = {
     ph: 6.8,
   },
   digesterPerformance: [
-    { digester: 'D-01', ts: 4.2, vs: 68.5, ph: 7.1, vfaTic: 0.32, slurryLevel: 4.8, hrt: 28, olr: 2.8, temp: 38.5 },
-    { digester: 'D-02', ts: 4.0, vs: 67.2, ph: 7.0, vfaTic: 0.28, slurryLevel: 4.6, hrt: 30, olr: 2.6, temp: 39.0 },
-    { digester: 'D-03', ts: 4.3, vs: 69.1, ph: 7.2, vfaTic: 0.35, slurryLevel: 4.9, hrt: 27, olr: 2.9, temp: 38.2 },
-    { digester: 'Average', ts: 4.17, vs: 68.27, ph: 7.1, vfaTic: 0.32, slurryLevel: 4.77, hrt: 28.3, olr: 2.77, temp: 38.57 },
+    { digester: 'Digester', ts: 4.2, vs: 68.5, ph: 7.1, vfaTic: 0.32, slurryLevel: 4.8, hrt: 28, olr: 2.8, temp: 38.5 },
+    { digester: 'Average', ts: 4.2, vs: 68.5, ph: 7.1, vfaTic: 0.32, slurryLevel: 4.8, hrt: 28, olr: 2.8, temp: 38.5 },
   ],
   biogasQuality: {
     ch4: 58.5,
@@ -223,9 +221,7 @@ const ConsolidatedMISView = () => {
                   <thead>
                     <tr>
                       <TableHeader>Name of the Feedstock&apos;s</TableHeader>
-                      <TableHeader align="center" bg="#059669">D-01</TableHeader>
-                      <TableHeader align="center" bg="#059669">D-02</TableHeader>
-                      <TableHeader align="center" bg="#059669">D-03</TableHeader>
+                      <TableHeader align="center" bg="#059669">Digester</TableHeader>
                       <TableHeader align="center" bg="#0B1F3A">Total</TableHeader>
                     </tr>
                   </thead>
@@ -236,8 +232,6 @@ const ConsolidatedMISView = () => {
                           {row.name}
                         </TableCell>
                         <TableCell align="center">{row.d01}</TableCell>
-                        <TableCell align="center">{row.d02}</TableCell>
-                        <TableCell align="center">{row.d03}</TableCell>
                         <TableCell align="center" highlight>{row.total}</TableCell>
                       </tr>
                     ))}

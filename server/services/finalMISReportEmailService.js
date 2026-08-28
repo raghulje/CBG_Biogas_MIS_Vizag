@@ -177,7 +177,8 @@ function aggregate(entries) {
   };
   const splitFeedTotals = (totalQty) => {
     const total = Number(totalQty || 0);
-    return { d01: total / 2, d02: total / 2, d03: total, total };
+    // Single digester plant: all feed on Digester column
+    return { d01: total, d02: 0, d03: 0, total };
   };
   const buildFeedTotals = (getQty) =>
     splitFeedTotals(sum(entries.map((entry) => Number(getQty(entry) || 0))));
@@ -187,11 +188,8 @@ function aggregate(entries) {
     ph: getPh ? averagePresent(entries.map((entry) => maybeNumber(getPh(entry)))) : null,
   });
 
-  // Mimic the frontend useMemo logic
   const d01Feed = sum(entries.map((e) => e.digesters[0]?.feeding.totalSlurryFeed || 0));
-  const d02Feed = sum(entries.map((e) => e.digesters[1]?.feeding.totalSlurryFeed || 0));
   const d01Discharge = sum(entries.map((e) => e.digesters[0]?.discharge.totalSlurryOut || 0));
-  const d02Discharge = sum(entries.map((e) => e.digesters[1]?.discharge.totalSlurryOut || 0));
   const totalFeedInputFromForm = sum(
     entries.map((e) => {
       const nn = (v) => Number(v || 0);
@@ -209,9 +207,9 @@ function aggregate(entries) {
   const totalFeedInputFromMixingTank = sum(entries.map((e) => Number(e.feedMixingTank?.slurry?.total) || 0));
   const totalFeedInputFromDigesters = {
     d01: d01Feed,
-    d02: d02Feed,
-    d03: d01Feed + d02Feed,
-    total: d01Feed + d02Feed,
+    d02: 0,
+    d03: 0,
+    total: d01Feed,
   };
   const totalFeedInput =
     totalFeedInputFromForm > 0
@@ -220,10 +218,21 @@ function aggregate(entries) {
       ? splitFeedTotals(totalFeedInputFromMixingTank)
       : totalFeedInputFromDigesters;
 
+  const emptyDigesterPerf = { ts: 0, vs: 0, ph: 0, vfaTic: 0, slurryLevel: 0, hrt: 0, olr: 0, temp: 0 };
+  const d01Perf = {
+    ts: avg(entries.map((e) => e.digesters[0]?.feeding.avgTs || 0)),
+    vs: avg(entries.map((e) => e.digesters[0]?.feeding.avgVs || 0)),
+    ph: avg(entries.map((e) => e.digesters[0]?.characteristics.ph || 0)),
+    vfaTic: avg(entries.map((e) => e.digesters[0]?.characteristics.vfaAlkRatio || 0)),
+    slurryLevel: avg(entries.map((e) => e.digesters[0]?.characteristics.slurryLevel || 0)),
+    hrt: avg(entries.map((e) => e.digesters[0]?.health?.hrt || 0)),
+    olr: avg(entries.map((e) => e.digesters[0]?.health?.olr || 0)),
+    temp: avg(entries.map((e) => e.digesters[0]?.characteristics.temperature || 0)),
+  };
+
   return {
     recordCount: entries.length,
     dateRange: `${entries[0].date} to ${entries[entries.length - 1].date}`,
-    // D-01 and D-02 are the only digesters; D-03 column = Total = D-01 + D-02
     feeding: {
       pressMud: buildFeedTotals((e) => e.feedMixingTank.pressmudFeed.qty),
       cowDung: buildFeedTotals((e) => e.feedMixingTank.cowDungFeed.qty),
@@ -234,12 +243,11 @@ function aggregate(entries) {
       otherFeedSubstrate: buildFeedTotals((e) => e.feedMixingTank.otherFeedSubstrate?.qty),
       digester03Slurry: {
         d01: d01Discharge,
-        d02: d02Discharge,
-        d03: d01Discharge + d02Discharge,
-        total: d01Discharge + d02Discharge,
+        d02: 0,
+        d03: 0,
+        total: d01Discharge,
       },
       totalFeedInput,
-      // Same as Final MIS web card / dashboard: Feed Mixing Tank (tons), not digester m³
       totalFeedAmountTons: totalFeedInputFromForm,
     },
     rawMaterialQuality: {
@@ -275,36 +283,9 @@ function aggregate(entries) {
       ),
     },
     digesterPerformance: {
-      d01: {
-        ts: avg(entries.map((e) => e.digesters[0]?.feeding.avgTs || 0)),
-        vs: avg(entries.map((e) => e.digesters[0]?.feeding.avgVs || 0)),
-        ph: avg(entries.map((e) => e.digesters[0]?.characteristics.ph || 0)),
-        vfaTic: avg(entries.map((e) => e.digesters[0]?.characteristics.vfaAlkRatio || 0)),
-        slurryLevel: avg(entries.map((e) => e.digesters[0]?.characteristics.slurryLevel || 0)),
-        hrt: avg(entries.map((e) => e.digesters[0]?.health?.hrt || 0)),
-        olr: avg(entries.map((e) => e.digesters[0]?.health?.olr || 0)),
-        temp: avg(entries.map((e) => e.digesters[0]?.characteristics.temperature || 0)),
-      },
-      d02: {
-        ts: avg(entries.map((e) => e.digesters[1]?.feeding.avgTs || 0)),
-        vs: avg(entries.map((e) => e.digesters[1]?.feeding.avgVs || 0)),
-        ph: avg(entries.map((e) => e.digesters[1]?.characteristics.ph || 0)),
-        vfaTic: avg(entries.map((e) => e.digesters[1]?.characteristics.vfaAlkRatio || 0)),
-        slurryLevel: avg(entries.map((e) => e.digesters[1]?.characteristics.slurryLevel || 0)),
-        hrt: avg(entries.map((e) => e.digesters[1]?.health?.hrt || 0)),
-        olr: avg(entries.map((e) => e.digesters[1]?.health?.olr || 0)),
-        temp: avg(entries.map((e) => e.digesters[1]?.characteristics.temperature || 0)),
-      },
-      d03: {
-        ts: avg(entries.map((e) => e.digesters[2]?.feeding.avgTs || 0)),
-        vs: avg(entries.map((e) => e.digesters[2]?.feeding.avgVs || 0)),
-        ph: avg(entries.map((e) => e.digesters[2]?.characteristics.ph || 0)),
-        vfaTic: avg(entries.map((e) => e.digesters[2]?.characteristics.vfaAlkRatio || 0)),
-        slurryLevel: avg(entries.map((e) => e.digesters[2]?.characteristics.slurryLevel || 0)),
-        hrt: avg(entries.map((e) => e.digesters[2]?.health?.hrt || 0)),
-        olr: avg(entries.map((e) => e.digesters[2]?.health?.olr || 0)),
-        temp: avg(entries.map((e) => e.digesters[2]?.characteristics.temperature || 0)),
-      },
+      d01: d01Perf,
+      d02: emptyDigesterPerf,
+      d03: emptyDigesterPerf,
     },
     biogasQuality: {
       ch4: avg(entries.map((e) => e.rawBiogasQuality.ch4)),
@@ -336,7 +317,7 @@ function aggregate(entries) {
       decanter: {
         runHrs: sum(entries.map((e) => e.compressors.compressor1Hours)),
         slurryFeed: avg(entries.map((e) => e.slsMachine.slurryFeed / 24)),
-        inletTs: avg(entries.map((e) => e.slsMachine.wetCakeTs)), // Approximation
+        inletTs: avg(entries.map((e) => e.slsMachine.wetCakeTs)),
         totalSlurryFeed: sum(entries.map((e) => e.slsMachine.slurryFeed)),
       },
       screwPress: {
@@ -355,7 +336,7 @@ function aggregate(entries) {
       },
       screwPress: {
         wetCakeQty: sum(entries.map((e) => e.fertilizer.fomProduced)),
-        wetCakeTs: avg(entries.map((e) => e.slsMachine.wetCakeTs)), // Approximation
+        wetCakeTs: avg(entries.map((e) => e.slsMachine.wetCakeTs)),
         lfomQty: sum(entries.map((e) => e.slsMachine.liquidSentToLagoon)),
         lfomTs: avg(entries.map((e) => e.slsMachine.liquidTs)),
       },
@@ -411,7 +392,7 @@ function buildReportHtml(startDate, endDate, a, customBody) {
     { name: 'Pulp (tpd)', data: a.feeding.pulp, quality: a.rawMaterialQuality.pulp },
     { name: 'Maggie (tpd)', data: a.feeding.maggie, quality: a.rawMaterialQuality.maggie },
     { name: 'Other Feed Substrate (tpd)', data: a.feeding.otherFeedSubstrate, quality: a.rawMaterialQuality.otherFeedSubstrate },
-    { name: 'Digester 03 slurry (m3)', data: a.feeding.digester03Slurry, quality: null },
+    { name: 'Digester slurry (m3)', data: a.feeding.digester03Slurry, quality: null },
     { name: 'Total Feed Input (m3)', data: a.feeding.totalFeedInput, quality: null },
   ];
 
@@ -429,15 +410,13 @@ function buildReportHtml(startDate, endDate, a, customBody) {
     </tr>
     <tr>
         <td class="bg-accent3">Name of the Feedstock's</td>
-        <td colspan="4" class="bg-accent3 text-center">Feeding Data</td>
+        <td colspan="2" class="bg-accent3 text-center">Feeding Data</td>
         <td class="bg-accent1"></td>
         <td colspan="6" class="bg-accent3 text-center">Raw material Quality Data</td>
     </tr>
     <tr>
         <td class="bg-accent2"></td>
-        <td class="bg-accent2 text-center">D-01</td>
-        <td class="bg-accent2 text-center">D-02</td>
-        <td class="bg-accent2 text-center">D-03</td>
+        <td class="bg-accent2 text-center">Digester</td>
         <td class="bg-accent2 text-center">Total</td>
         <td class="bg-accent1"></td>
         <td colspan="2" class="bg-accent2 text-center">TS%</td>
@@ -446,7 +425,7 @@ function buildReportHtml(startDate, endDate, a, customBody) {
     </tr>
   </thead>
   <tbody>
-    ${feedstockRows.map((row) => `<tr><td>${row.name}</td><td class="text-center">${n2(row.data.d01)}</td><td class="text-center">${n2(row.data.d02)}</td><td class="text-center">${n2(row.data.d03)}</td><td class="text-center font-bold">${n2(row.data.total)}</td><td class="bg-accent1"></td><td colspan="2" class="text-center">${q1(row.quality?.ts)}</td><td colspan="2" class="text-center">${q1(row.quality?.vs)}</td><td colspan="2" class="text-center">${q1(row.quality?.ph)}</td></tr>`).join('')}
+    ${feedstockRows.map((row) => `<tr><td>${row.name}</td><td class="text-center">${n2(row.data.d01)}</td><td class="text-center font-bold">${n2(row.data.total)}</td><td class="bg-accent1"></td><td colspan="2" class="text-center">${q1(row.quality?.ts)}</td><td colspan="2" class="text-center">${q1(row.quality?.vs)}</td><td colspan="2" class="text-center">${q1(row.quality?.ph)}</td></tr>`).join('')}
     
     <!-- Spacing -->
     <tr><td colspan="12" style="background: #f8fafc; padding: 8px;"></td></tr>
@@ -458,26 +437,26 @@ function buildReportHtml(startDate, endDate, a, customBody) {
         <td class="bg-accent2 text-center">TS%</td><td class="bg-accent2 text-center">VS%</td><td class="bg-accent2 text-center">pH</td><td class="bg-accent2 text-center">VFA/TIC</td>
         <td class="bg-accent1 text-center">Slurry Level (m)</td><td class="bg-accent1 text-center">HRT (days)</td><td colspan="2" class="bg-accent1 text-center">OLR(kgVS/m3/day)</td><td colspan="3" class="bg-accent4 text-center">Slurry avg. Temp (deg C)</td>
     </tr>
-    ${['d01', 'd02', 'd03'].map((key, idx) => {
+    ${['d01'].map((key) => {
     const d = a.digesterPerformance[key];
     return `<tr>
-            <td class="font-bold">D-0${idx + 1}</td>
+            <td class="font-bold">Digester</td>
             <td class="text-center">${n1(d.ts)}</td><td class="text-center">${n1(d.vs)}</td><td class="text-center">${n1(d.ph)}</td><td class="text-center">${n2(d.vfaTic)}</td>
             <td class="text-center">${n1(d.slurryLevel)}</td><td class="text-center">${n1(d.hrt)}</td><td colspan="2" class="text-center">${n2(d.olr)}</td><td colspan="3" class="text-center">${n1(d.temp)}</td>
         </tr>`;
   }).join('')}
     
-    <!-- Average Row -->
+    <!-- Average Row (same as Digester for single-digester plant) -->
     <tr class="bg-accent2">
         <td class="font-bold">Average</td>
-        <td class="text-center">${n1((a.digesterPerformance.d01.ts + a.digesterPerformance.d02.ts + a.digesterPerformance.d03.ts) / 3)}</td>
-        <td class="text-center">${n1((a.digesterPerformance.d01.vs + a.digesterPerformance.d02.vs + a.digesterPerformance.d03.vs) / 3)}</td>
-        <td class="text-center">${n1((a.digesterPerformance.d01.ph + a.digesterPerformance.d02.ph + a.digesterPerformance.d03.ph) / 3)}</td>
-        <td class="text-center">${n2((a.digesterPerformance.d01.vfaTic + a.digesterPerformance.d02.vfaTic + a.digesterPerformance.d03.vfaTic) / 3)}</td>
-        <td class="text-center">${n1((a.digesterPerformance.d01.slurryLevel + a.digesterPerformance.d02.slurryLevel + a.digesterPerformance.d03.slurryLevel) / 3)}</td>
-        <td class="text-center">${n1((a.digesterPerformance.d01.hrt + a.digesterPerformance.d02.hrt + a.digesterPerformance.d03.hrt) / 3)}</td>
-        <td colspan="2" class="text-center">${n2((a.digesterPerformance.d01.olr + a.digesterPerformance.d02.olr + a.digesterPerformance.d03.olr) / 3)}</td>
-        <td colspan="3" class="text-center">${n1((a.digesterPerformance.d01.temp + a.digesterPerformance.d02.temp + a.digesterPerformance.d03.temp) / 3)}</td>
+        <td class="text-center">${n1(a.digesterPerformance.d01.ts)}</td>
+        <td class="text-center">${n1(a.digesterPerformance.d01.vs)}</td>
+        <td class="text-center">${n1(a.digesterPerformance.d01.ph)}</td>
+        <td class="text-center">${n2(a.digesterPerformance.d01.vfaTic)}</td>
+        <td class="text-center">${n1(a.digesterPerformance.d01.slurryLevel)}</td>
+        <td class="text-center">${n1(a.digesterPerformance.d01.hrt)}</td>
+        <td colspan="2" class="text-center">${n2(a.digesterPerformance.d01.olr)}</td>
+        <td colspan="3" class="text-center">${n1(a.digesterPerformance.d01.temp)}</td>
     </tr>
 
     <!-- Spacing -->

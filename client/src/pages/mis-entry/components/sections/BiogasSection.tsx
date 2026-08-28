@@ -145,13 +145,7 @@ export default function BiogasSection({ isReadOnly }: Props) {
       >
         <Grid container spacing={2.5}>
           <Grid item xs={12} sm={6} md={4}>
-            <TextField fullWidth label="Digester 01 Gas" type="number" inputProps={{ step: 'any', inputMode: 'decimal' }} InputProps={{ endAdornment: unitAdornment('m³') }} {...register('rawBiogas.digester01Gas')} disabled={isReadOnly} sx={misFormFieldSx} />
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <TextField fullWidth label="Digester 02 Gas" type="number" inputProps={{ step: 'any', inputMode: 'decimal' }} InputProps={{ endAdornment: unitAdornment('m³') }} {...register('rawBiogas.digester02Gas')} disabled={isReadOnly} sx={misFormFieldSx} />
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <TextField fullWidth label="Digester 03 Gas" type="number" inputProps={{ step: 'any', inputMode: 'decimal' }} InputProps={{ endAdornment: unitAdornment('m³') }} {...register('rawBiogas.digester03Gas')} disabled={isReadOnly} sx={misFormFieldSx} />
+            <TextField fullWidth label="Digester Gas" type="number" inputProps={{ step: 'any', inputMode: 'decimal' }} InputProps={{ endAdornment: unitAdornment('m³') }} {...register('rawBiogas.digester01Gas')} disabled={isReadOnly} sx={misFormFieldSx} />
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
             <TextField fullWidth label="Total Raw Biogas" type="number" inputProps={{ step: 'any', inputMode: 'decimal' }} InputProps={{ endAdornment: unitAdornment('m³') }} {...register('rawBiogas.totalRawBiogas')} disabled={isReadOnly} sx={misFormFieldSx} />

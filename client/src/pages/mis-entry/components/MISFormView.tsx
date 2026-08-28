@@ -101,8 +101,6 @@ export default function MISFormView({
     shift: 'General',
     digesters: [
       { id: 1, name: 'Digester 01', feeding: {}, discharge: {}, characteristics: {}, health: {} },
-      { id: 2, name: 'Digester 02', feeding: {}, discharge: {}, characteristics: {}, health: {} },
-      { id: 3, name: 'Digester 03', feeding: {}, discharge: {}, characteristics: {}, health: {} }
     ],
     rawMaterials: {},
     feedMixingTank: {},

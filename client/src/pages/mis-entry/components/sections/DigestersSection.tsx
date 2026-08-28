@@ -3,19 +3,17 @@ import {
   TextField,
   Grid,
   Box,
-  Button,
   IconButton,
   MenuItem,
   Chip,
   InputAdornment,
 } from '@mui/material';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import {
   FormSection,
   FieldGroup,
   misFormFieldSx,
-  secondaryBtnSx,
   dangerIconBtnSx,
   SECTION_ACCENTS,
 } from '../FormSectionChrome';
@@ -34,76 +32,21 @@ const unitAdornment = (unit: string) => (
 );
 
 export default function DigestersSection({ isReadOnly }: Props) {
-  const { control, register, watch, setValue } = useFormContext();
-  const { fields, append, remove } = useFieldArray({
+  const { control, register } = useFormContext();
+  const { fields, remove } = useFieldArray({
     control,
     name: 'digesters',
   });
 
-  const d01Feed = watch('digesters.0.feeding.totalSlurryFeed');
-  const d02Feed = watch('digesters.1.feeding.totalSlurryFeed');
-  const feedingTotal = (parseFloat(d01Feed) || 0) + (parseFloat(d02Feed) || 0);
   const accent = SECTION_ACCENTS.digesters;
-
-  const handleFeedingTotalChange = (value: string) => {
-    const num = value === '' ? 0 : parseFloat(value);
-    if (value !== '' && Number.isNaN(num)) return;
-    const half = num / 2;
-    setValue('digesters.0.feeding.totalSlurryFeed', half, { shouldValidate: true });
-    setValue('digesters.1.feeding.totalSlurryFeed', half, { shouldValidate: true });
-  };
-
-  const handleAddDigester = () => {
-    const newId = fields.length > 0 ? Math.max(...fields.map((f: any) => f.id || 0)) + 1 : 1;
-    append({
-      id: newId,
-      name: `Digester ${String(newId).padStart(2, '0')}`,
-      feeding: {},
-      discharge: {},
-      characteristics: {},
-      health: {},
-    });
-  };
 
   return (
     <FormSection
       id="section-digesters"
-      title="Digesters"
-      subtitle="Feeding, discharge, slurry health & monitoring"
+      title="Digester"
+      subtitle="Feeding, discharge, slurry health & monitoring (single digester plant)"
       accentKey="digesters"
-      action={
-        !isReadOnly ? (
-          <Button variant="outlined" startIcon={<Plus size={16} />} onClick={handleAddDigester} sx={secondaryBtnSx}>
-            Add Digester
-          </Button>
-        ) : undefined
-      }
     >
-      {fields.length >= 2 && (
-        <Box
-          sx={{
-            mb: 3,
-            p: 2.25,
-            borderRadius: '14px',
-            bgcolor: '#F8FAFC',
-          }}
-        >
-          <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#475569', mb: 1.25 }}>
-            Feeding Data — Total (split equally to D-01 & D-02)
-          </Typography>
-          <TextField
-            type="number"
-            label="Total"
-            value={feedingTotal || ''}
-            onChange={(e) => handleFeedingTotalChange(e.target.value)}
-            disabled={isReadOnly}
-            inputProps={{ min: 0, step: 'any' }}
-            InputProps={{ endAdornment: unitAdornment('kg') }}
-            sx={{ ...misFormFieldSx, maxWidth: 220 }}
-          />
-        </Box>
-      )}
-
       {fields.length > 0 ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {fields.map((digester, index) => (
@@ -368,7 +311,7 @@ export default function DigestersSection({ isReadOnly }: Props) {
           ))}
         </Box>
       ) : (
-        <Typography sx={{ fontSize: 14, color: '#64748B' }}>No digesters available.</Typography>
+        <Typography sx={{ fontSize: 14, color: '#64748B' }}>No digester data available.</Typography>
       )}
     </FormSection>
   );

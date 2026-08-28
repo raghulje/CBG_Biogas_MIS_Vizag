@@ -36,6 +36,7 @@ process.on('uncaughtException', (error) => {
 const app = express();
 // Default production port set to 3015; can be overridden via server/.env
 const PORT = process.env.PORT || 3015;
+// Bind all interfaces so LAN access works even when Wi‑Fi IP changes
 const HOST = process.env.HOST || '0.0.0.0';
 
 const corsOptions = {
@@ -46,7 +47,25 @@ const corsOptions = {
 };
 
 // Middleware (order: security → cors → compression → logging → body parsers → routes)
-app.use(helmet());
+// Helmet defaults enable HSTS + CSP upgrade-insecure-requests, which break plain HTTP
+// LAN access (e.g. http://10.x.x.x:3015) by forcing https:// and causing blank pages.
+const useHttps = process.env.FORCE_HTTPS === 'true' || process.env.NODE_ENV === 'production';
+app.use(helmet({
+    // Only send HSTS when the app is actually served over HTTPS
+    hsts: useHttps ? undefined : false,
+    // COOP warns/fails on non-trustworthy HTTP IP origins; keep it for HTTPS only
+    crossOriginOpenerPolicy: useHttps ? { policy: 'same-origin' } : false,
+    contentSecurityPolicy: {
+        useDefaults: true,
+        directives: {
+            // Critical: do NOT upgrade http:// LAN requests to https://
+            upgradeInsecureRequests: useHttps ? [] : null,
+            // Allow Google Fonts used by the built client
+            'font-src': ["'self'", 'https:', 'data:'],
+            'style-src': ["'self'", 'https:', "'unsafe-inline'"],
+        },
+    },
+}));
 app.use(cors(corsOptions));
 app.use(compression());
 if (process.env.NODE_ENV !== 'production') {
@@ -197,7 +216,13 @@ async function startServer() {
             const address = server.address();
             const actualPort = address.port;
             const actualHost = address.address || HOST;
-            console.log(`Server is running on http://${actualHost}:${actualPort}`);
+            const displayHost = (actualHost === '::' || actualHost === '0.0.0.0')
+                ? (process.env.FRONTEND_URL ? new URL(process.env.FRONTEND_URL).hostname : 'localhost')
+                : actualHost;
+            console.log(`Server is running on http://${displayHost}:${actualPort}`);
+            if (actualHost === '::' || actualHost === '0.0.0.0') {
+                console.log(`Listening on all interfaces (0.0.0.0:${actualPort}) — LAN share: http://${displayHost}:${actualPort}`);
+            }
         } catch (err) {
             console.error('Failed to start server:', err);
             process.exit(1);

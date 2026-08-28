@@ -131,9 +131,10 @@ function getDateRangeForFilter(
 type FeedRowData = { d01: number; d02: number; d03: number; total: number };
 type FeedQualityData = { ts: number | null; vs: number | null; ph: number | null };
 
+/** Single-digester plant: all feed assigned to Digester; unused columns stay 0 for report layout. */
 function splitFeedTotals(totalQty: number): FeedRowData {
   const total = Number(totalQty || 0);
-  return { d01: total / 2, d02: total / 2, d03: total, total };
+  return { d01: total, d02: 0, d03: 0, total };
 }
 
 function maybeNumber(value: unknown): number | null {
@@ -256,18 +257,12 @@ const FinalMISPage = () => {
       ph: getPh ? averagePresent(filteredEntries.map((entry) => maybeNumber(getPh(entry)))) : null,
     });
 
-    // D-01 and D-02 are the only digesters; D-03 column = Total = D-01 + D-02
+    // Single digester plant — D-01 holds values; D-02/D-03 unused (kept for report column layout)
     const d01Feed = sum(
       filteredEntries.map((e) => e.digesters[0]?.feeding.totalSlurryFeed || 0)
     );
-    const d02Feed = sum(
-      filteredEntries.map((e) => e.digesters[1]?.feeding.totalSlurryFeed || 0)
-    );
     const d01Discharge = sum(
       filteredEntries.map((e) => e.digesters[0]?.discharge?.totalSlurryOut || 0)
-    );
-    const d02Discharge = sum(
-      filteredEntries.map((e) => e.digesters[1]?.discharge?.totalSlurryOut || 0)
     );
     const totalFeedInputFromForm = sum(
       filteredEntries.map(
@@ -286,9 +281,9 @@ const FinalMISPage = () => {
     );
     const totalFeedInputFromDigesters = {
       d01: d01Feed,
-      d02: d02Feed,
-      d03: d01Feed + d02Feed,
-      total: d01Feed + d02Feed,
+      d02: 0,
+      d03: 0,
+      total: d01Feed,
     };
     const totalFeedInput =
       totalFeedInputFromForm > 0
@@ -296,6 +291,18 @@ const FinalMISPage = () => {
         : totalFeedInputFromMixingTank > 0
         ? splitFeedTotals(totalFeedInputFromMixingTank)
         : totalFeedInputFromDigesters;
+
+    const emptyDigesterPerf = { ts: 0, vs: 0, ph: 0, vfaTic: 0, slurryLevel: 0, hrt: 0, olr: 0, temp: 0 };
+    const d01Perf = {
+      ts: avg(filteredEntries.map((e) => e.digesters[0]?.feeding.avgTs || 0)),
+      vs: avg(filteredEntries.map((e) => e.digesters[0]?.feeding.avgVs || 0)),
+      ph: avg(filteredEntries.map((e) => e.digesters[0]?.characteristics.ph || 0)),
+      vfaTic: avg(filteredEntries.map((e) => e.digesters[0]?.characteristics.vfaAlkRatio || 0)),
+      slurryLevel: avg(filteredEntries.map((e) => e.digesters[0]?.characteristics.slurryLevel || 0)),
+      hrt: avg(filteredEntries.map((e) => e.digesters[0]?.health?.hrt || 0)),
+      olr: avg(filteredEntries.map((e) => e.digesters[0]?.health?.olr || 0)),
+      temp: avg(filteredEntries.map((e) => e.digesters[0]?.characteristics.temperature || 0)),
+    };
 
     return {
       recordCount: filteredEntries.length,
@@ -319,9 +326,9 @@ const FinalMISPage = () => {
         otherFeedSubstrate: buildFeedTotals((e) => e.feedMixingTank.otherFeedSubstrate?.qty),
         digester03Slurry: {
           d01: d01Discharge,
-          d02: d02Discharge,
-          d03: d01Discharge + d02Discharge,
-          total: d01Discharge + d02Discharge,
+          d02: 0,
+          d03: 0,
+          total: d01Discharge,
         },
         totalFeedInput,
         // For summary card: same as dashboard "Total Feed Amount" — sum of cow dung + pressmud + permeate + water (tons)
@@ -361,132 +368,9 @@ const FinalMISPage = () => {
         ),
       },
       digesterPerformance: {
-        d01: {
-          ts: avg(
-            filteredEntries.map(
-              (e) => e.digesters[0]?.feeding.avgTs || 0
-            )
-          ),
-          vs: avg(
-            filteredEntries.map(
-              (e) => e.digesters[0]?.feeding.avgVs || 0
-            )
-          ),
-          ph: avg(
-            filteredEntries.map(
-              (e) => e.digesters[0]?.characteristics.ph || 0
-            )
-          ),
-          vfaTic: avg(
-            filteredEntries.map(
-              (e) => e.digesters[0]?.characteristics.vfaAlkRatio || 0
-            )
-          ),
-          slurryLevel: avg(
-            filteredEntries.map(
-              (e) => e.digesters[0]?.characteristics.slurryLevel || 0
-            )
-          ),
-          hrt: avg(
-            filteredEntries.map(
-              (e) => e.digesters[0]?.health?.hrt || 0
-            )
-          ),
-          olr: avg(
-            filteredEntries.map(
-              (e) => e.digesters[0]?.health?.olr || 0
-            )
-          ),
-          temp: avg(
-            filteredEntries.map(
-              (e) => e.digesters[0]?.characteristics.temperature || 0
-            )
-          ),
-        },
-        d02: {
-          ts: avg(
-            filteredEntries.map(
-              (e) => e.digesters[1]?.feeding.avgTs || 0
-            )
-          ),
-          vs: avg(
-            filteredEntries.map(
-              (e) => e.digesters[1]?.feeding.avgVs || 0
-            )
-          ),
-          ph: avg(
-            filteredEntries.map(
-              (e) => e.digesters[1]?.characteristics.ph || 0
-            )
-          ),
-          vfaTic: avg(
-            filteredEntries.map(
-              (e) => e.digesters[1]?.characteristics.vfaAlkRatio || 0
-            )
-          ),
-          slurryLevel: avg(
-            filteredEntries.map(
-              (e) => e.digesters[1]?.characteristics.slurryLevel || 0
-            )
-          ),
-          hrt: avg(
-            filteredEntries.map(
-              (e) => e.digesters[1]?.health?.hrt || 0
-            )
-          ),
-          olr: avg(
-            filteredEntries.map(
-              (e) => e.digesters[1]?.health?.olr || 0
-            )
-          ),
-          temp: avg(
-            filteredEntries.map(
-              (e) => e.digesters[1]?.characteristics.temperature || 0
-            )
-          ),
-        },
-        d03: {
-          ts: avg(
-            filteredEntries.map(
-              (e) => e.digesters[2]?.feeding.avgTs || 0
-            )
-          ),
-          vs: avg(
-            filteredEntries.map(
-              (e) => e.digesters[2]?.feeding.avgVs || 0
-            )
-          ),
-          ph: avg(
-            filteredEntries.map(
-              (e) => e.digesters[2]?.characteristics.ph || 0
-            )
-          ),
-          vfaTic: avg(
-            filteredEntries.map(
-              (e) => e.digesters[2]?.characteristics.vfaAlkRatio || 0
-            )
-          ),
-          slurryLevel: avg(
-            filteredEntries.map(
-              (e) => e.digesters[2]?.characteristics.slurryLevel || 0
-            )
-          ),
-          hrt: avg(
-            filteredEntries.map(
-              (e) => e.digesters[2]?.health?.hrt || 0
-            )
-          ),
-          olr: avg(
-            filteredEntries.map(
-              (e) => e.digesters[2]?.health?.olr || 0
-            )
-          ),
-          temp: avg(
-            filteredEntries.map(
-              (e) => e.digesters[2]?.characteristics.temperature || 0
-            )
-          ),
-        },
+        d01: d01Perf,
+        d02: emptyDigesterPerf,
+        d03: emptyDigesterPerf,
       },
       biogasQuality: {
         ch4: avg(filteredEntries.map((e) => e.rawBiogasQuality.ch4)),
@@ -529,75 +413,35 @@ const FinalMISPage = () => {
           filteredEntries.map((e) => e.rawBiogas.gasYield)
         ),
         cf: avg(
-          filteredEntries.map(
-            (e) => e.compressedBiogas.conversionRatio
-          )
+          filteredEntries.map((e) => e.compressedBiogas.conversionRatio)
         ),
       },
       slsData: {
         decanter: {
-          runHrs: sum(
-            filteredEntries.map((e) => e.compressors.compressor1Hours)
-          ),
-          slurryFeed: avg(
-            filteredEntries.map(
-              (e) => e.slsMachine.slurryFeed / 24
-            )
-          ),
-          inletTs: avg(
-            filteredEntries.map((e) => e.slsMachine.wetCakeTs)
-          ),
-          totalSlurryFeed: sum(
-            filteredEntries.map((e) => e.slsMachine.slurryFeed)
-          ),
+          runHrs: sum(filteredEntries.map((e) => e.compressors.compressor1Hours)),
+          slurryFeed: avg(filteredEntries.map((e) => e.slsMachine.slurryFeed / 24)),
+          inletTs: avg(filteredEntries.map((e) => e.slsMachine.wetCakeTs)),
+          totalSlurryFeed: sum(filteredEntries.map((e) => e.slsMachine.slurryFeed)),
         },
         screwPress: {
-          runHrs: sum(
-            filteredEntries.map((e) => e.compressors.compressor2Hours)
-          ),
-          slurryFeed: avg(
-            filteredEntries.map(
-              (e) => e.slsMachine.slurryFeed / 24
-            )
-          ),
-          inletTs: avg(
-            filteredEntries.map((e) => e.slsMachine.wetCakeTs)
-          ),
-          totalSlurryFeed: sum(
-            filteredEntries.map((e) => e.slsMachine.slurryFeed)
-          ),
+          runHrs: sum(filteredEntries.map((e) => e.compressors.compressor2Hours)),
+          slurryFeed: avg(filteredEntries.map((e) => e.slsMachine.slurryFeed / 24)),
+          inletTs: avg(filteredEntries.map((e) => e.slsMachine.wetCakeTs)),
+          totalSlurryFeed: sum(filteredEntries.map((e) => e.slsMachine.slurryFeed)),
         },
       },
       fomLfom: {
         decanter: {
-          wetCakeQty: sum(
-            filteredEntries.map((e) => e.slsMachine.wetCakeProduction)
-          ),
-          wetCakeTs: avg(
-            filteredEntries.map((e) => e.slsMachine.wetCakeTs)
-          ),
-          lfomQty: sum(
-            filteredEntries.map((e) => e.slsMachine.liquidProduced)
-          ),
-          lfomTs: avg(
-            filteredEntries.map((e) => e.slsMachine.liquidTs)
-          ),
+          wetCakeQty: sum(filteredEntries.map((e) => e.slsMachine.wetCakeProduction)),
+          wetCakeTs: avg(filteredEntries.map((e) => e.slsMachine.wetCakeTs)),
+          lfomQty: sum(filteredEntries.map((e) => e.slsMachine.liquidProduced)),
+          lfomTs: avg(filteredEntries.map((e) => e.slsMachine.liquidTs)),
         },
         screwPress: {
-          wetCakeQty: sum(
-            filteredEntries.map((e) => e.fertilizer.fomProduced)
-          ),
-          wetCakeTs: avg(
-            filteredEntries.map((e) => e.slsMachine.wetCakeTs)
-          ),
-          lfomQty: sum(
-            filteredEntries.map(
-              (e) => e.slsMachine.liquidSentToLagoon
-            )
-          ),
-          lfomTs: avg(
-            filteredEntries.map((e) => e.slsMachine.liquidTs)
-          ),
+          wetCakeQty: sum(filteredEntries.map((e) => e.fertilizer.fomProduced)),
+          wetCakeTs: avg(filteredEntries.map((e) => e.slsMachine.wetCakeTs)),
+          lfomQty: sum(filteredEntries.map((e) => e.slsMachine.liquidSentToLagoon)),
+          lfomTs: avg(filteredEntries.map((e) => e.slsMachine.liquidTs)),
         },
       },
       slurryManagement: {
@@ -605,40 +449,30 @@ const FinalMISPage = () => {
           filteredEntries.map(
             (e) =>
               e.digesters.reduce(
-                (acc, d) => acc + d.discharge.totalSlurryOut,
+                (acc, d) => acc + (d.discharge?.totalSlurryOut || 0),
                 0
               ) * 0.1
           )
         ),
-        slsInlet: sum(
-          filteredEntries.map((e) => e.slsMachine.slurryFeed)
-        ),
+        slsInlet: sum(filteredEntries.map((e) => e.slsMachine.slurryFeed)),
         directPurgeToLagoon: sum(
-          filteredEntries.map(
-            (e) => e.slsMachine.liquidSentToLagoon * 0.2
-          )
+          filteredEntries.map((e) => e.slsMachine.liquidSentToLagoon * 0.2)
         ),
         totalSlurryOut: sum(
           filteredEntries.map((e) =>
             e.digesters.reduce(
-              (acc, d) => acc + d.discharge.totalSlurryOut,
+              (acc, d) => acc + (d.discharge?.totalSlurryOut || 0),
               0
             )
           )
         ),
         totalPermeateToMixingTank: sum(
-          filteredEntries.map(
-            (e) => e.feedMixingTank.permeateFeed.qty
-          )
+          filteredEntries.map((e) => e.feedMixingTank.permeateFeed.qty)
         ),
         totalLfomToLagoon: sum(
-          filteredEntries.map(
-            (e) => e.slsMachine.liquidSentToLagoon
-          )
+          filteredEntries.map((e) => e.slsMachine.liquidSentToLagoon)
         ),
-        fomCakeDispatch: sum(
-          filteredEntries.map((e) => e.fertilizer.sold)
-        ),
+        fomCakeDispatch: sum(filteredEntries.map((e) => e.fertilizer.sold)),
         lfomDispatch: sum(
           filteredEntries.map((e) => e.fertilizer.lagoonLiquidSold)
         ),
@@ -650,10 +484,8 @@ const FinalMISPage = () => {
         filteredEntries
           .filter(
             (e) =>
-              e.remarks
-                .toLowerCase()
-                .includes('maintenance') ||
-              e.remarks.toLowerCase().includes('breakdown')
+              e.remarks?.toLowerCase().includes('maintenance') ||
+              e.remarks?.toLowerCase().includes('breakdown')
           )
           .map((e) => e.remarks)
           .join('; ') || 'No major breakdowns reported',
@@ -664,6 +496,9 @@ const FinalMISPage = () => {
     singleDate,
     startDate,
     endDate,
+    selectedMonth,
+    selectedQuarter,
+    selectedYear,
   ]);
 
   const feedstockRows = useMemo(() => {
@@ -705,7 +540,7 @@ const FinalMISPage = () => {
         quality: aggregatedData.rawMaterialQuality.otherFeedSubstrate,
       },
       {
-        name: 'Digester 03 slurry (m3)',
+        name: 'Digester slurry (m3)',
         data: aggregatedData.feeding.digester03Slurry,
         quality: null,
       },
@@ -748,27 +583,15 @@ const FinalMISPage = () => {
         "Name of the Feedstock's",
         'Feeding Data',
         '',
-        '',
-        '',
-        '',
-        '',
-        '',
-        '',
         'Raw material Quality Data',
         '',
         '',
       ],
-      // Row 3: Column Headers
+      // Row 3: Column Headers (single digester — Digester + Total only)
       [
         '',
-        'D-01',
-        'D-02',
-        'D-03',
+        'Digester',
         'Total',
-        '',
-        '',
-        '',
-        '',
         'TS%',
         'VS%',
         'pH',
@@ -776,19 +599,13 @@ const FinalMISPage = () => {
       ...feedstockRows.map((row) => [
         row.name,
         row.data.d01.toFixed(2),
-        row.data.d02.toFixed(2),
-        row.data.d03.toFixed(2),
         row.data.total.toFixed(2),
-        '',
-        '',
-        '',
-        '',
         formatMaybeFixed(row.quality?.ts, 1),
         formatMaybeFixed(row.quality?.vs, 1),
         formatMaybeFixed(row.quality?.ph, 1),
       ]),
       // Empty Row
-      ['', '', '', '', '', '', '', '', '', '', '', ''],
+      ['', '', '', '', '', ''],
       // Digester Performance Report Header
       [
         'Digester Performance Report',
@@ -819,9 +636,9 @@ const FinalMISPage = () => {
         'Slurry avg. Temp (deg C)',
         '',
       ],
-      // Digester Rows
+      // Digester Rows (single digester plant)
       [
-        'D-01',
+        'Digester',
         aggregatedData.digesterPerformance.d01.ts.toFixed(1),
         aggregatedData.digesterPerformance.d01.vs.toFixed(1),
         aggregatedData.digesterPerformance.d01.ph.toFixed(1),
@@ -835,85 +652,17 @@ const FinalMISPage = () => {
         '',
       ],
       [
-        'D-02',
-        aggregatedData.digesterPerformance.d02.ts.toFixed(1),
-        aggregatedData.digesterPerformance.d02.vs.toFixed(1),
-        aggregatedData.digesterPerformance.d02.ph.toFixed(1),
-        aggregatedData.digesterPerformance.d02.vfaTic.toFixed(2),
-        aggregatedData.digesterPerformance.d02.slurryLevel.toFixed(1),
-        aggregatedData.digesterPerformance.d02.hrt.toFixed(1),
-        '',
-        aggregatedData.digesterPerformance.d02.olr.toFixed(2),
-        '',
-        aggregatedData.digesterPerformance.d02.temp.toFixed(1),
-        '',
-      ],
-      [
-        'D-03',
-        aggregatedData.digesterPerformance.d03.ts.toFixed(1),
-        aggregatedData.digesterPerformance.d03.vs.toFixed(1),
-        aggregatedData.digesterPerformance.d03.ph.toFixed(1),
-        aggregatedData.digesterPerformance.d03.vfaTic.toFixed(2),
-        aggregatedData.digesterPerformance.d03.slurryLevel.toFixed(1),
-        aggregatedData.digesterPerformance.d03.hrt.toFixed(1),
-        '',
-        aggregatedData.digesterPerformance.d03.olr.toFixed(2),
-        '',
-        aggregatedData.digesterPerformance.d03.temp.toFixed(1),
-        '',
-      ],
-      [
         'Average',
-        (
-          (aggregatedData.digesterPerformance.d01.ts +
-            aggregatedData.digesterPerformance.d02.ts +
-            aggregatedData.digesterPerformance.d03.ts) /
-          3
-        ).toFixed(1),
-        (
-          (aggregatedData.digesterPerformance.d01.vs +
-            aggregatedData.digesterPerformance.d02.vs +
-            aggregatedData.digesterPerformance.d03.vs) /
-          3
-        ).toFixed(1),
-        (
-          (aggregatedData.digesterPerformance.d01.ph +
-            aggregatedData.digesterPerformance.d02.ph +
-            aggregatedData.digesterPerformance.d03.ph) /
-          3
-        ).toFixed(1),
-        (
-          (aggregatedData.digesterPerformance.d01.vfaTic +
-            aggregatedData.digesterPerformance.d02.vfaTic +
-            aggregatedData.digesterPerformance.d03.vfaTic) /
-          3
-        ).toFixed(2),
-        (
-          (aggregatedData.digesterPerformance.d01.slurryLevel +
-            aggregatedData.digesterPerformance.d02.slurryLevel +
-            aggregatedData.digesterPerformance.d03.slurryLevel) /
-          3
-        ).toFixed(1),
-        (
-          (aggregatedData.digesterPerformance.d01.hrt +
-            aggregatedData.digesterPerformance.d02.hrt +
-            aggregatedData.digesterPerformance.d03.hrt) /
-          3
-        ).toFixed(1),
+        aggregatedData.digesterPerformance.d01.ts.toFixed(1),
+        aggregatedData.digesterPerformance.d01.vs.toFixed(1),
+        aggregatedData.digesterPerformance.d01.ph.toFixed(1),
+        aggregatedData.digesterPerformance.d01.vfaTic.toFixed(2),
+        aggregatedData.digesterPerformance.d01.slurryLevel.toFixed(1),
+        aggregatedData.digesterPerformance.d01.hrt.toFixed(1),
         '',
-        (
-          (aggregatedData.digesterPerformance.d01.olr +
-            aggregatedData.digesterPerformance.d02.olr +
-            aggregatedData.digesterPerformance.d03.olr) /
-          3
-        ).toFixed(2),
+        aggregatedData.digesterPerformance.d01.olr.toFixed(2),
         '',
-        (
-          (aggregatedData.digesterPerformance.d01.temp +
-            aggregatedData.digesterPerformance.d02.temp +
-            aggregatedData.digesterPerformance.d03.temp) /
-          3
-        ).toFixed(1),
+        aggregatedData.digesterPerformance.d01.temp.toFixed(1),
         '',
       ],
       // Empty Row
@@ -1305,16 +1054,8 @@ const FinalMISPage = () => {
                       <Typography variant="subtitle2" fontWeight={600} color={tokens.primary.main} mb={1.5}>Press Mud (tpd)</Typography>
                       <Stack spacing={1}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Typography variant="caption" color="textSecondary">D-01</Typography>
+                          <Typography variant="caption" color="textSecondary">Digester</Typography>
                           <Typography variant="body2" fontWeight={600}>{aggregatedData.feeding.pressMud.d01.toFixed(2)}</Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Typography variant="caption" color="textSecondary">D-02</Typography>
-                          <Typography variant="body2" fontWeight={600}>{aggregatedData.feeding.pressMud.d02.toFixed(2)}</Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Typography variant="caption" color="textSecondary">D-03</Typography>
-                          <Typography variant="body2" fontWeight={600}>{aggregatedData.feeding.pressMud.d03.toFixed(2)}</Typography>
                         </Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', pt: 1, borderTop: `1px solid ${tokens.border}` }}>
                           <Typography variant="body2" fontWeight={700}>Total</Typography>
@@ -1329,16 +1070,8 @@ const FinalMISPage = () => {
                       <Typography variant="subtitle2" fontWeight={600} color={tokens.success.main} mb={1.5}>Cow Dung (tpd)</Typography>
                       <Stack spacing={1}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Typography variant="caption" color="textSecondary">D-01</Typography>
+                          <Typography variant="caption" color="textSecondary">Digester</Typography>
                           <Typography variant="body2" fontWeight={600}>{aggregatedData.feeding.cowDung.d01.toFixed(2)}</Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Typography variant="caption" color="textSecondary">D-02</Typography>
-                          <Typography variant="body2" fontWeight={600}>{aggregatedData.feeding.cowDung.d02.toFixed(2)}</Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Typography variant="caption" color="textSecondary">D-03</Typography>
-                          <Typography variant="body2" fontWeight={600}>{aggregatedData.feeding.cowDung.d03.toFixed(2)}</Typography>
                         </Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', pt: 1, borderTop: `1px solid ${tokens.border}` }}>
                           <Typography variant="body2" fontWeight={700}>Total</Typography>
@@ -1353,16 +1086,8 @@ const FinalMISPage = () => {
                       <Typography variant="subtitle2" fontWeight={600} color={tokens.chart.sales} mb={1.5}>Total Feed Input (m³)</Typography>
                       <Stack spacing={1}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Typography variant="caption" color="textSecondary">D-01</Typography>
+                          <Typography variant="caption" color="textSecondary">Digester</Typography>
                           <Typography variant="body2" fontWeight={600}>{aggregatedData.feeding.totalFeedInput.d01.toFixed(2)}</Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Typography variant="caption" color="textSecondary">D-02</Typography>
-                          <Typography variant="body2" fontWeight={600}>{aggregatedData.feeding.totalFeedInput.d02.toFixed(2)}</Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Typography variant="caption" color="textSecondary">D-03</Typography>
-                          <Typography variant="body2" fontWeight={600}>{aggregatedData.feeding.totalFeedInput.d03.toFixed(2)}</Typography>
                         </Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', pt: 1, borderTop: `1px solid ${tokens.border}` }}>
                           <Typography variant="body2" fontWeight={700}>Total</Typography>
@@ -1382,13 +1107,13 @@ const FinalMISPage = () => {
               </AccordionSummary>
               <AccordionDetails sx={{ pt: 0, pb: 2 }}>
                 <Stack spacing={2}>
-                  {['d01', 'd02', 'd03'].map((d, i) => {
+                  {['d01'].map((d, i) => {
                     const perf = aggregatedData.digesterPerformance[d];
                     return (
                       <Card key={d} sx={{ borderRadius: '14px', boxShadow: tokens.shadow.sm, border: `1px solid ${tokens.border}` }}>
                         <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
                           <Typography variant="subtitle2" fontWeight={700} color={tokens.primary.main} mb={1.5}>
-                            Digester {i + 1}
+                            Digester
                           </Typography>
                           <Stack spacing={1}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5 }}>
@@ -1969,6 +1694,7 @@ const FinalMISPage = () => {
                   fontSize: '13px',
                   minWidth: '1200px',
                   fontFamily: 'inherit',
+                  tableLayout: 'fixed',
                 }}
               >
                 <tbody>
@@ -2026,9 +1752,10 @@ const FinalMISPage = () => {
                     </td>
                   </tr>
 
-                  {/* Row 2: Feeding + Quality section titles (no decorative spacer column) */}
+                  {/* Row 2: Feeding + Quality section titles — Digester/Total/TS/VS/pH share equal width (2 cols each) */}
                   <tr>
                     <td
+                      colSpan={2}
                       style={{
                         background: colors.accent3,
                         padding: '11px 16px',
@@ -2055,7 +1782,7 @@ const FinalMISPage = () => {
                       Feeding Data
                     </td>
                     <td
-                      colSpan={7}
+                      colSpan={6}
                       style={{
                         background: colors.accent3,
                         padding: '11px 16px',
@@ -2069,9 +1796,10 @@ const FinalMISPage = () => {
                     </td>
                   </tr>
 
-                  {/* Row 3: Column Headers */}
+                  {/* Row 3: equal-width data columns (each spans 2 of 12) */}
                   <tr>
                     <td
+                      colSpan={2}
                       style={{
                         background: colors.rowHeader,
                         padding: '9px 16px',
@@ -2080,6 +1808,7 @@ const FinalMISPage = () => {
                       }}
                     ></td>
                     <td
+                      colSpan={2}
                       style={{
                         background: colors.accent2,
                         padding: '9px 12px',
@@ -2087,35 +1816,13 @@ const FinalMISPage = () => {
                         fontWeight: 600,
                         color: colors.text,
                         borderBottom: `1px solid ${colors.border}`,
+                        width: '16.66%',
                       }}
                     >
-                      D-01
+                      Digester
                     </td>
                     <td
-                      style={{
-                        background: colors.accent2,
-                        padding: '9px 12px',
-                        textAlign: 'center',
-                        fontWeight: 600,
-                        color: colors.text,
-                        borderBottom: `1px solid ${colors.border}`,
-                      }}
-                    >
-                      D-02
-                    </td>
-                    <td
-                      style={{
-                        background: colors.accent2,
-                        padding: '9px 12px',
-                        textAlign: 'center',
-                        fontWeight: 600,
-                        color: colors.text,
-                        borderBottom: `1px solid ${colors.border}`,
-                      }}
-                    >
-                      D-03
-                    </td>
-                    <td
+                      colSpan={2}
                       style={{
                         background: colors.accent2,
                         padding: '9px 12px',
@@ -2124,6 +1831,7 @@ const FinalMISPage = () => {
                         color: colors.text,
                         borderBottom: `1px solid ${colors.border}`,
                         borderRight: `1px solid ${colors.border}`,
+                        width: '16.66%',
                       }}
                     >
                       Total
@@ -2137,6 +1845,7 @@ const FinalMISPage = () => {
                         fontWeight: 600,
                         color: colors.text,
                         borderBottom: `1px solid ${colors.border}`,
+                        width: '16.66%',
                       }}
                     >
                       TS%
@@ -2150,12 +1859,13 @@ const FinalMISPage = () => {
                         fontWeight: 600,
                         color: colors.text,
                         borderBottom: `1px solid ${colors.border}`,
+                        width: '16.66%',
                       }}
                     >
                       VS%
                     </td>
                     <td
-                      colSpan={3}
+                      colSpan={2}
                       style={{
                         background: colors.accent1,
                         padding: '9px 12px',
@@ -2163,6 +1873,7 @@ const FinalMISPage = () => {
                         fontWeight: 600,
                         color: colors.text,
                         borderBottom: `1px solid ${colors.border}`,
+                        width: '16.66%',
                       }}
                     >
                       pH
@@ -2178,6 +1889,7 @@ const FinalMISPage = () => {
                       }}
                     >
                       <td
+                        colSpan={2}
                         style={{
                           background: colors.rowHeader,
                           padding: '9px 16px',
@@ -2190,6 +1902,7 @@ const FinalMISPage = () => {
                         {row.name}
                       </td>
                       <td
+                        colSpan={2}
                         style={{
                           padding: '9px 12px',
                           textAlign: 'center',
@@ -2200,26 +1913,7 @@ const FinalMISPage = () => {
                         {row.data.d01.toFixed(2)}
                       </td>
                       <td
-                        style={{
-                          padding: '9px 12px',
-                          textAlign: 'center',
-                          color: colors.text,
-                          borderBottom: `1px solid ${colors.border}`,
-                        }}
-                      >
-                        {row.data.d02.toFixed(2)}
-                      </td>
-                      <td
-                        style={{
-                          padding: '9px 12px',
-                          textAlign: 'center',
-                          color: colors.text,
-                          borderBottom: `1px solid ${colors.border}`,
-                        }}
-                      >
-                        {row.data.d03.toFixed(2)}
-                      </td>
-                      <td
+                        colSpan={2}
                         style={{
                           padding: '9px 12px',
                           textAlign: 'center',
@@ -2254,7 +1948,7 @@ const FinalMISPage = () => {
                         {formatMaybeFixed(row.quality?.vs, 1)}
                       </td>
                       <td
-                        colSpan={3}
+                        colSpan={2}
                         style={{
                           padding: '9px 12px',
                           textAlign: 'center',
@@ -2408,8 +2102,8 @@ const FinalMISPage = () => {
                     </td>
                   </tr>
 
-                  {/* Digester Rows */}
-                  {['d01', 'd02', 'd03'].map((digester, idx) => {
+                  {/* Digester Rows — single digester plant */}
+                  {['d01'].map((digester, idx) => {
                     const data =
                       aggregatedData.digesterPerformance[
                       digester as keyof typeof aggregatedData.digesterPerformance
@@ -2430,7 +2124,7 @@ const FinalMISPage = () => {
                             borderBottom: `1px solid ${colors.border}`,
                           }}
                         >
-                          D-0{idx + 1}
+                          Digester
                         </td>
                         <td
                           style={{

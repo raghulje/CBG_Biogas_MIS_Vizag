@@ -41,26 +41,11 @@ interface Digester {
 
 type ViewMode = 'list' | 'create' | 'edit' | 'view';
 
+/** Plant operates a single digester — keep one default; users can still add more if needed. */
 const defaultDigesters: Digester[] = [
   {
     id: 1,
     name: 'Digester 01',
-    feeding: { totalSlurryFeed: 0, avgTs: 0, avgVs: 0 },
-    discharge: { totalSlurryOut: 0, avgTs: 0, avgVs: 0 },
-    characteristics: { lignin: 0, vfa: 0, alkalinity: 0, vfaAlkRatio: 0, ash: 0, density: 0, ph: 0, temperature: 0, pressure: 0, slurryLevel: 0 },
-    health: { hrt: 0, vsDestruction: 0, olr: 0, balloonLevel: 0, agitatorCondition: 'OK', foamingLevel: 0 },
-  },
-  {
-    id: 2,
-    name: 'Digester 02',
-    feeding: { totalSlurryFeed: 0, avgTs: 0, avgVs: 0 },
-    discharge: { totalSlurryOut: 0, avgTs: 0, avgVs: 0 },
-    characteristics: { lignin: 0, vfa: 0, alkalinity: 0, vfaAlkRatio: 0, ash: 0, density: 0, ph: 0, temperature: 0, pressure: 0, slurryLevel: 0 },
-    health: { hrt: 0, vsDestruction: 0, olr: 0, balloonLevel: 0, agitatorCondition: 'OK', foamingLevel: 0 },
-  },
-  {
-    id: 3,
-    name: 'Digester 03',
     feeding: { totalSlurryFeed: 0, avgTs: 0, avgVs: 0 },
     discharge: { totalSlurryOut: 0, avgTs: 0, avgVs: 0 },
     characteristics: { lignin: 0, vfa: 0, alkalinity: 0, vfaAlkRatio: 0, ash: 0, density: 0, ph: 0, temperature: 0, pressure: 0, slurryLevel: 0 },

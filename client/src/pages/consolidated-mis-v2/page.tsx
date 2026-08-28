@@ -167,15 +167,13 @@ export default function ConsolidatedMISV2Page() {
               </tr>
               <tr>
                 <th rowSpan={2} className="header-cell sub-header-blue">Name of the Feedstock&apos;s</th>
-                <th colSpan={4} className="header-cell sub-header-blue">Feeding Data</th>
+                <th colSpan={2} className="header-cell sub-header-blue">Feeding Data</th>
                 <th rowSpan={8} className="empty-spacer"></th>
                 <th colSpan={3} className="header-cell sub-header-orange">Raw material Quality Data</th>
                 <th rowSpan={8} className="empty-spacer-small"></th>
               </tr>
               <tr>
-                <th className="header-cell col-header-blue">D-01</th>
-                <th className="header-cell col-header-blue">D-02</th>
-                <th className="header-cell col-header-blue">D-03</th>
+                <th className="header-cell col-header-blue">Digester</th>
                 <th className="header-cell col-header-blue">Total</th>
                 <th className="header-cell col-header-orange">TS%</th>
                 <th className="header-cell col-header-orange">VS%</th>
@@ -183,12 +181,10 @@ export default function ConsolidatedMISV2Page() {
               </tr>
             </thead>
             <tbody>
-              {/* Feeding rows */}
+              {/* Feeding rows — single digester plant */}
               <tr>
                 <td className="row-label">Press Mud (tpd)</td>
-                <td className="data-cell">{fmt(data?.feeding?.pressMudD01)}</td>
-                <td className="data-cell">{fmt(data?.feeding?.pressMudD02)}</td>
-                <td className="data-cell">{fmt(data?.feeding?.pressMudD03)}</td>
+                <td className="data-cell">{fmt(data?.feeding?.pressMudD01 ?? data?.feeding?.pressMudTotal)}</td>
                 <td className="data-cell total-cell">{fmt(data?.feeding?.pressMudTotal)}</td>
                 <td className="data-cell" style={{ backgroundColor: '#FCE4D6' }}>{fmt(data?.rawMaterialQuality?.tsPercent)}</td>
                 <td className="data-cell" style={{ backgroundColor: '#FCE4D6' }}>{fmt(data?.rawMaterialQuality?.vsPercent)}</td>
@@ -196,9 +192,7 @@ export default function ConsolidatedMISV2Page() {
               </tr>
               <tr>
                 <td className="row-label">Cow Dung (tpd)</td>
-                <td className="data-cell">–</td>
-                <td className="data-cell">–</td>
-                <td className="data-cell">–</td>
+                <td className="data-cell">{fmt(data?.feeding?.cowDungTotal)}</td>
                 <td className="data-cell total-cell">{fmt(data?.feeding?.cowDungTotal)}</td>
                 <td className="data-cell" style={{ backgroundColor: '#FCE4D6' }}></td>
                 <td className="data-cell" style={{ backgroundColor: '#FCE4D6' }}></td>
@@ -206,30 +200,32 @@ export default function ConsolidatedMISV2Page() {
               </tr>
               <tr>
                 <td className="row-label">Other feedstock (tpd)</td>
-                <td className="data-cell">–</td>
-                <td className="data-cell">–</td>
-                <td className="data-cell">–</td>
+                <td className="data-cell">{fmt(data?.feeding?.otherFeedstockTotal)}</td>
                 <td className="data-cell total-cell">{fmt(data?.feeding?.otherFeedstockTotal)}</td>
                 <td colSpan={3} className="data-cell" style={{ backgroundColor: '#FCE4D6' }}></td>
               </tr>
               <tr>
                 <td className="row-label">Decanter permeate (m3)</td>
-                <td colSpan={4} className="data-cell total-cell">{fmt(data?.feeding?.decanterPermeate)}</td>
+                <td className="data-cell">{fmt(data?.feeding?.decanterPermeate)}</td>
+                <td className="data-cell total-cell">{fmt(data?.feeding?.decanterPermeate)}</td>
                 <td colSpan={3} className="data-cell" style={{ backgroundColor: '#FCE4D6' }}></td>
               </tr>
               <tr>
                 <td className="row-label">water (m3)</td>
-                <td colSpan={4} className="data-cell total-cell">{fmt(data?.feeding?.water)}</td>
+                <td className="data-cell">{fmt(data?.feeding?.water)}</td>
+                <td className="data-cell total-cell">{fmt(data?.feeding?.water)}</td>
                 <td colSpan={3} className="data-cell" style={{ backgroundColor: '#FCE4D6' }}></td>
               </tr>
               <tr>
-                <td className="row-label">Digester 03 slurry (m3)</td>
-                <td colSpan={4} className="data-cell total-cell">{fmt(data?.feeding?.digester03Slurry)}</td>
+                <td className="row-label">Digester slurry (m3)</td>
+                <td className="data-cell">{fmt(data?.feeding?.digester03Slurry)}</td>
+                <td className="data-cell total-cell">{fmt(data?.feeding?.digester03Slurry)}</td>
                 <td colSpan={3} className="data-cell" style={{ backgroundColor: '#FCE4D6' }}></td>
               </tr>
               <tr>
                 <td className="row-label" style={{ backgroundColor: '#4472C4', color: '#fff' }}>Total Feed Input (m3)</td>
-                <td colSpan={4} className="data-cell" style={{ backgroundColor: '#BDD7EE' }}>{fmt(data?.feeding?.totalFeedInput)}</td>
+                <td className="data-cell" style={{ backgroundColor: '#BDD7EE' }}>{fmt(data?.feeding?.totalFeedInput)}</td>
+                <td className="data-cell" style={{ backgroundColor: '#BDD7EE' }}>{fmt(data?.feeding?.totalFeedInput)}</td>
                 <td colSpan={3} className="data-cell" style={{ backgroundColor: '#FCE4D6' }}></td>
               </tr>
 
