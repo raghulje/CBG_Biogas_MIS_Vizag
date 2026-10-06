@@ -43,15 +43,15 @@ const unitAdornment = (unit: string) => (
   </InputAdornment>
 );
 
-const PRODUCT_META: Record<string, { accent: string; description: string }> = {
-  CBG: { accent: '#2879B6', description: 'Compressed biogas customer sales' },
-  FOM: { accent: '#059669', description: 'Fermented organic manure sales' },
-  LFOM: { accent: '#D97706', description: 'Liquid FOM customer sales' },
+const PRODUCT_META: Record<string, { description: string }> = {
+  CBG: { description: 'Compressed biogas customer sales' },
+  FOM: { description: 'Fermented organic manure sales' },
+  LFOM: { description: 'Liquid FOM customer sales' },
 };
 
-const FUEL_META: Record<string, { accent: string; description: string }> = {
-  Petrol: { accent: '#2879B6', description: 'Petrol utilized for plant operations' },
-  Diesel: { accent: '#E65100', description: 'Diesel utilized for plant operations' },
+const FUEL_META: Record<string, { description: string }> = {
+  Petrol: { description: 'Petrol utilized for plant operations' },
+  Diesel: { description: 'Diesel utilized for plant operations' },
 };
 
 export default function BiogasSection({ isReadOnly }: Props) {
@@ -219,9 +219,43 @@ export default function BiogasSection({ isReadOnly }: Props) {
           const meta = PRODUCT_META[productType];
 
           return (
-            <Box key={productType} sx={productCardSx(meta.accent)}>
-              <Typography sx={{ fontSize: 18, fontWeight: 600, color: '#1E293B', mb: 0.5 }}>{productType}</Typography>
-              <Typography sx={{ fontSize: 13, color: '#64748B', mb: 2 }}>{meta.description}</Typography>
+            <Box key={productType} sx={productCardSx}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: { xs: 'stretch', sm: 'flex-start' },
+                  justifyContent: 'space-between',
+                  gap: 1.5,
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  mb: 2,
+                }}
+              >
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontSize: 18, fontWeight: 600, color: '#1E293B' }}>{productType}</Typography>
+                  <Typography sx={{ fontSize: 13, color: '#64748B', mt: 0.35 }}>{meta.description}</Typography>
+                </Box>
+                {!isReadOnly && (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, flexShrink: 0 }}>
+                    <Button
+                      startIcon={<PlusCircle size={16} />}
+                      variant="contained"
+                      onClick={() => append({ customerType: productType, customerId: '', quantity: '' })}
+                      sx={{ ...primaryBtnSx, height: 40 }}
+                    >
+                      Add Sale
+                    </Button>
+                    <Button
+                      startIcon={<UserPlus size={16} />}
+                      variant="outlined"
+                      onClick={() => openAddCustomer(productType)}
+                      disabled={!canCreateCustomer}
+                      sx={{ ...secondaryBtnSx, height: 40 }}
+                    >
+                      Add Customer
+                    </Button>
+                  </Box>
+                )}
+              </Box>
 
               {rowIndices.map((index) => (
                 <Grid
@@ -276,36 +310,16 @@ export default function BiogasSection({ isReadOnly }: Props) {
                 </Grid>
               ))}
 
-              {!isReadOnly && (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.25, mt: rowIndices.length ? 1.5 : 0 }}>
-                  <Button
-                    startIcon={<PlusCircle size={16} />}
-                    variant="contained"
-                    onClick={() => append({ customerType: productType, customerId: '', quantity: '' })}
-                    sx={primaryBtnSx}
-                  >
-                    Add Sale
-                  </Button>
-                  <Button
-                    startIcon={<UserPlus size={16} />}
-                    variant="outlined"
-                    onClick={() => openAddCustomer(productType)}
-                    disabled={!canCreateCustomer}
-                    sx={secondaryBtnSx}
-                  >
-                    Add Customer
-                  </Button>
-                </Box>
+              {rowIndices.length === 0 && (
+                <Typography sx={{ fontSize: 13.5, color: '#64748B', py: 0.5 }}>
+                  {isReadOnly
+                    ? 'No sales entries for this product.'
+                    : 'No entries yet — click Add Sale to add customer and quantity.'}
+                </Typography>
               )}
             </Box>
           );
         })}
-
-        {fields.length === 0 && (
-          <Typography sx={{ fontSize: 13.5, color: '#64748B', textAlign: 'center', py: 2 }}>
-            No sales entries added. Use &quot;Add Sale&quot; under each product to add customer and quantity.
-          </Typography>
-        )}
       </FormSection>
 
       <FormSection
@@ -322,9 +336,43 @@ export default function BiogasSection({ isReadOnly }: Props) {
           const meta = FUEL_META[fuelType];
 
           return (
-            <Box key={fuelType} sx={productCardSx(meta.accent)}>
-              <Typography sx={{ fontSize: 18, fontWeight: 600, color: '#1E293B', mb: 0.5 }}>{fuelType}</Typography>
-              <Typography sx={{ fontSize: 13, color: '#64748B', mb: 2 }}>{meta.description}</Typography>
+            <Box key={fuelType} sx={productCardSx}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: { xs: 'stretch', sm: 'flex-start' },
+                  justifyContent: 'space-between',
+                  gap: 1.5,
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  mb: 2,
+                }}
+              >
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontSize: 18, fontWeight: 600, color: '#1E293B' }}>{fuelType}</Typography>
+                  <Typography sx={{ fontSize: 13, color: '#64748B', mt: 0.35 }}>{meta.description}</Typography>
+                </Box>
+                {!isReadOnly && (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, flexShrink: 0 }}>
+                    <Button
+                      startIcon={<PlusCircle size={16} />}
+                      variant="contained"
+                      onClick={() => fuelAppend({ fuelType, customerId: '', quantity: '' })}
+                      sx={{ ...primaryBtnSx, height: 40 }}
+                    >
+                      Add Fuel
+                    </Button>
+                    <Button
+                      startIcon={<UserPlus size={16} />}
+                      variant="outlined"
+                      onClick={() => openAddCustomer(fuelType)}
+                      disabled={!canCreateCustomer}
+                      sx={{ ...secondaryBtnSx, height: 40 }}
+                    >
+                      Add Customer
+                    </Button>
+                  </Box>
+                )}
+              </Box>
 
               {rowIndices.map((index) => (
                 <Grid container spacing={2} key={fuelFields[index].id} sx={{ mb: 1.75, alignItems: 'center' }}>
@@ -374,36 +422,16 @@ export default function BiogasSection({ isReadOnly }: Props) {
                 </Grid>
               ))}
 
-              {!isReadOnly && (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.25, mt: rowIndices.length ? 1.5 : 0 }}>
-                  <Button
-                    startIcon={<PlusCircle size={16} />}
-                    variant="contained"
-                    onClick={() => fuelAppend({ fuelType, customerId: '', quantity: '' })}
-                    sx={primaryBtnSx}
-                  >
-                    Add Sale
-                  </Button>
-                  <Button
-                    startIcon={<UserPlus size={16} />}
-                    variant="outlined"
-                    onClick={() => openAddCustomer(fuelType)}
-                    disabled={!canCreateCustomer}
-                    sx={secondaryBtnSx}
-                  >
-                    Add Customer
-                  </Button>
-                </Box>
+              {rowIndices.length === 0 && (
+                <Typography sx={{ fontSize: 13.5, color: '#64748B', py: 0.5 }}>
+                  {isReadOnly
+                    ? 'No fuel entries for this type.'
+                    : 'No entries yet — click Add Fuel to add customer and quantity.'}
+                </Typography>
               )}
             </Box>
           );
         })}
-
-        {fuelFields.length === 0 && (
-          <Typography sx={{ fontSize: 13.5, color: '#64748B', textAlign: 'center', py: 2 }}>
-            No fuel entries added. Use &quot;Add Sale&quot; under each fuel type to add customer and quantity.
-          </Typography>
-        )}
       </FormSection>
 
       <FormSection

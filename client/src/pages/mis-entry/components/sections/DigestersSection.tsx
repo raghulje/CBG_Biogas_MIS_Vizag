@@ -58,16 +58,6 @@ export default function DigestersSection({ isReadOnly }: Props) {
                 boxShadow: '0 6px 20px rgba(16,24,40,.04)',
                 overflow: 'hidden',
                 bgcolor: '#fff',
-                position: 'relative',
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: 4,
-                  background: `linear-gradient(90deg, ${accent.accent}, ${accent.iconBg})`,
-                },
               }}
             >
               <Box sx={{ p: { xs: 2.25, md: 3 } }}>

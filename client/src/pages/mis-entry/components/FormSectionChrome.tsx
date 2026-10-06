@@ -291,12 +291,11 @@ export const dangerIconBtnSx = {
   '&:hover': { bgcolor: 'rgba(220,53,69,0.18)' },
 };
 
-export const productCardSx = (accent: string) => ({
+export const productCardSx = {
   borderRadius: '16px',
   border: '1px solid #E5EDF6',
-  borderLeft: `4px solid ${accent}`,
   bgcolor: '#fff',
   p: { xs: 2, sm: 2.5 },
   mb: 2,
   boxShadow: '0 4px 16px rgba(16,24,40,.04)',
-});
+};
